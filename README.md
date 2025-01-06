@@ -1,6 +1,8 @@
 # COSCRAD Data Ingestion
 
 ## Setup
+Make sure you are using Python 3.10.16.
+
 If using VS Code, install Microsoft's Python, Pylance, and Python Debugger extensions. 
 
 Create a virtual environment:
