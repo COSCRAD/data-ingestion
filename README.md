@@ -6,6 +6,9 @@ If using VS Code, install Microsoft's Python, Pylance, and Python Debugger exten
 Create a virtual environment:
 > > > python -m venv .env
 
+Install PIP dependencies:
+> > > pip install -r /path/to/requirements.txt
+
 ## Development
 Activate the virtual environment:
 > > > source .venv/bin/activate
