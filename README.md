@@ -9,7 +9,8 @@ Create a virtual environment:
 > > > python -m venv .env
 
 Install PIP dependencies:
-> > > pip install -r /path/to/requirements.txt
+> > > pip install -U pip
+> > > pip install -r requirements.txt
 
 ## Development
 Activate the virtual environment:
