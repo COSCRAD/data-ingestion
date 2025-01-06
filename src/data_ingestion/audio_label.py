@@ -4,6 +4,7 @@ class AudioLabel:
         self.out_point = out_point
 
         self.text = text
+        self.audio = None
 
     def shift(self, delta):
         self.in_point = self.in_point - delta
@@ -14,3 +15,9 @@ class AudioLabel:
 
     def length(self):
         return self.out_point - self.in_point
+
+    def has_audio(self):
+        return self.audio is not None
+
+    def assign_audio(self, chunk):
+        self.audio = chunk
