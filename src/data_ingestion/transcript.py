@@ -1,4 +1,6 @@
-from audio_label import AudioLabel
+
+from data_ingestion.audio_label import AudioLabel
+
 
 class Transcript:
     def __init__(self,name):

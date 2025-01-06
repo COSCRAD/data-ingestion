@@ -1,6 +1,6 @@
 import unittest
 
-from audio_label import AudioLabel
+from data_ingestion.audio_label import AudioLabel
 
 class TestAudioLabel(unittest.TestCase):
     def test_building_new_label(self):
