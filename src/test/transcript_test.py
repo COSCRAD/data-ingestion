@@ -1,7 +1,6 @@
 import unittest
 
-from transcript import Transcript
-
+from data_ingestion.transcript import Transcript
 
 class TestTranscript(unittest.TestCase):
     def test_that_build_tsv_rows_raises_exception_for_invalid_tsv(self):
