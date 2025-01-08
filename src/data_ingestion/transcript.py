@@ -1,4 +1,5 @@
 from data_ingestion.audio_label import AudioLabel
+from pydub import AudioSegment
 
 
 class Transcript:
@@ -64,8 +65,10 @@ class Transcript:
             l.assign_audio(audio_chunk)
 
     def get_audio(self):
-        full_audio = []
+        full_audio = AudioSegment.empty()
 
         for l in self.labels:
             if l.has_audio():
-                full_audio.append(l.audio)
+                full_audio = full_audio + l.audio
+
+        return full_audio

@@ -67,7 +67,7 @@ class TestAudioLabel(unittest.TestCase):
 
         label.assign_audio(chunk_to_add)
 
-        self.assertEquals(label.has_audio(), True)
+        self.assertEqual(label.has_audio(), True)
 
         self.assertAlmostEqual(len(chunk_to_add), len(label.audio))
 

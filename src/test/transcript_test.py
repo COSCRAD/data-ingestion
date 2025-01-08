@@ -1,6 +1,8 @@
 import unittest
 
 from data_ingestion.transcript import Transcript
+from data_ingestion.audio_label import AudioLabel
+from pydub import AudioSegment
 
 
 class TestTranscript(unittest.TestCase):
@@ -125,6 +127,76 @@ class TestTranscript(unittest.TestCase):
         self.assertAlmostEqual(test_transcript.labels[0].in_point, in_points[0])
 
         self.assertAlmostEqual(test_transcript.labels[4].in_point, in_points[4])
+
+    def test_assigning_audio(self):
+        transcript = Transcript("test transcript")
+
+        full_audio_length = 120000  # ms = 120 s
+
+        full_audio = AudioSegment.silent(full_audio_length)
+
+        end_points_and_labels = [
+            [0, 500, "keepers"],
+            [500, 1000, "omit this one"],
+            [1000, 4000, "I am good"],
+            [4000, 90000, "what's up"],
+            [90000, 119999.5, "omit me please"],
+            [119999.5, full_audio_length, "finally done"],
+        ]
+
+        for in_point, out_point, text in end_points_and_labels:
+            transcript.append(
+                AudioLabel(in_point=in_point, out_point=out_point, text=text)
+            )
+
+        transcript.apply_audio(full_audio)
+
+        output_audio = transcript.get_audio()
+
+        # Note that our labels cover the entire audio and we haven't filtered
+        self.assertAlmostEqual(len(output_audio), full_audio_length)
+
+    def test_assign_audio_then_filter(self):
+        transcript = Transcript("test transcript")
+
+        full_audio_length = 120000  # ms = 120 s
+
+        full_audio = AudioSegment.silent(full_audio_length)
+
+        end_points_and_labels = [
+            [0, 500, "keepers"],
+            # Remove 500 mss
+            [500, 1000, "omit this one"],
+            [1000, 4000, "I am good"],
+            [4000, 90000, "what's up"],
+            # Remove 29999.5 ms
+            [90000, 119999.5, "omit me please"],
+            [119999.5, full_audio_length, "finally done"],
+            # removed 30499.5 ms
+        ]
+
+        length_of_removed_audio = 30499.5
+
+        for in_point, out_point, text in end_points_and_labels:
+            transcript.append(
+                AudioLabel(in_point=in_point, out_point=out_point, text=text)
+            )
+
+        transcript.apply_audio(full_audio)
+
+        filtered_transcript = transcript.filter(lambda l: "omit" not in l.text)
+
+        output_audio = filtered_transcript.get_audio()
+
+        # note that it's ok to be off by one ms
+        tolerance_ms = 1
+
+        # Note that our labels cover the entire audio and we haven't filtered
+        self.assertEqual(
+            len(output_audio) - (full_audio_length - length_of_removed_audio)
+            < tolerance_ms,
+            True,
+        )
 
 
 if __name__ == "__main__":
