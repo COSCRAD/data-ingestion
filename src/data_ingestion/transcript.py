@@ -1,4 +1,5 @@
 from data_ingestion.audio_label import AudioLabel
+from pydub import AudioSegment
 
 
 class Transcript:
@@ -54,3 +55,20 @@ class Transcript:
         get_in_point = lambda label: label.in_point
 
         self.labels.sort(key=get_in_point)
+
+    def apply_audio(self, audio_segment):
+        # for each label
+        for l in self.labels:
+            # use pydub to get the audio segment from l.in_point to l.out_point
+            audio_chunk = audio_segment[l.in_point : l.out_point]
+
+            l.assign_audio(audio_chunk)
+
+    def get_audio(self):
+        full_audio = AudioSegment.empty()
+
+        for l in self.labels:
+            if l.has_audio():
+                full_audio = full_audio + l.audio
+
+        return full_audio

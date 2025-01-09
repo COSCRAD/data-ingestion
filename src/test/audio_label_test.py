@@ -1,4 +1,5 @@
 import unittest
+from pydub import AudioSegment
 
 from data_ingestion.audio_label import AudioLabel
 
@@ -21,6 +22,8 @@ class TestAudioLabel(unittest.TestCase):
         self.assertEqual(label.out_point, out_point)
 
         self.assertEqual(label.text, text)
+
+        self.assertEqual(label.has_audio(), False)
 
     def test_shifting_of_labels(self):
         # arrange
@@ -46,6 +49,27 @@ class TestAudioLabel(unittest.TestCase):
         label = AudioLabel(1.23, 99.35, "text")
 
         self.assertAlmostEqual(label.length(), 98.12)
+
+        self.assertAlmostEqual(label.length(), 98.12)
+
+    def test_assign_audio(self):
+        in_point = 1.345
+        out_point = 2.345
+        text = "here is the text"
+
+        label = AudioLabel(
+            in_point=in_point,
+            out_point=out_point,
+            text=text,
+        )
+        chunk_length = 1200
+        chunk_to_add = AudioSegment.silent(chunk_length)
+
+        label.assign_audio(chunk_to_add)
+
+        self.assertEqual(label.has_audio(), True)
+
+        self.assertAlmostEqual(len(chunk_to_add), len(label.audio))
 
 
 if __name__ == "__main__":
