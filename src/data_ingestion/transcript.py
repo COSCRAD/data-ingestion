@@ -28,6 +28,9 @@ class Transcript:
             transcript.append(AudioLabel(in_point=float(i), out_point=float(o), text=t))
 
         return transcript
+    
+    def fromDocx(doc):
+        raise Exception("not implmented")
 
     """
     Return a shallow clone with only labels that satisfy the given predicate function
