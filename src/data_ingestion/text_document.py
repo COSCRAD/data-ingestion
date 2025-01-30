@@ -20,25 +20,43 @@ class CoscradParagraph:
 
 # The timestamp_offset allows us to shift timestamps appropriately
    def emit_audio_labels(self,timestamp_offset):
+      # participant_initials_delimiter_patern = r"[(a-z){2}]"
+
+      # first_speakers_initials = re.findall(participant_initials_delimiter_patern)
+
       # TODO Ingect the strategy for processing labels
-      delimiter_pattern = r"(_\d\d:\d\d:\d\d_)"
-      search = re.split(delimiter_pattern,self.text)
-      result = [] if search is None else search
+      time_stamp_delimiter_pattern = r"(_\d\d:\d\d:\d\d_)"
+      search = re.split(time_stamp_delimiter_pattern,self.text)
+      result = [] if search is None else list(filter(lambda s: not s.replace(' ','') == '',search))
 
-      first_timestamp = timestamp_offset if timestamp_offset is not None else 0.0
+      resolved_timestamp_offset = timestamp_offset if timestamp_offset is not None else 0.0
 
-      timestamps = [first_timestamp]
+      timestamps = []
 
       labels = []
 
+      # resolve an opening time-stamp in case the passage begins with text
+      if not re.match(time_stamp_delimiter_pattern,result[0]):
+         timestamps.append(resolved_timestamp_offset)
+
       for index,text in enumerate(result):
-         if re.match(delimiter_pattern,text):
-            timestamps.append(parse_timestamp(text))
+         if re.match(time_stamp_delimiter_pattern,text):
+            timestamps.append(parse_timestamp(text) + resolved_timestamp_offset) 
+
+      if not re.match(time_stamp_delimiter_pattern,result[-1]):
+         # Do we really want to duplicate this?
+         timestamps.append(timestamps[-1])
+
+      label_index = 0
 
       for text in result:
-         if not re.match(delimiter_pattern,text) and text.replace(" ","") != "":
-            index = len(labels) - 1
-            labels.append(AudioLabel(in_point=timestamps[index],out_point=timestamps[index+1],text=text)) 
+         # TODO be careful about the effects of trimming white space
+         if not re.match(time_stamp_delimiter_pattern,text) and text.replace(" ","") != "":
+            labels.append(AudioLabel(in_point=timestamps[label_index],out_point=timestamps[label_index+1],text=text)) 
+            label_index = label_index + 1
+
+
+ # TODO We need to consolidate all timestamps in case there was no closing timestamp
 
       return labels           
 
