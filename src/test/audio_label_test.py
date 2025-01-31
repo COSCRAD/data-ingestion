@@ -16,7 +16,9 @@ class TestAudioLabel(unittest.TestCase):
         initials = "AP"
 
         # act
-        label = AudioLabel(in_point=in_point, out_point=out_point, text=text, speaker_initials=initials)
+        label = AudioLabel(
+            in_point=in_point, out_point=out_point, text=text, speaker_initials=initials
+        )
 
         # assert
         self.assertEqual(label.in_point, in_point)
@@ -25,7 +27,7 @@ class TestAudioLabel(unittest.TestCase):
 
         self.assertEqual(label.text, text)
 
-        self.assertEqual(label.speaker_initials,initials)
+        self.assertEqual(label.speaker_initials, initials)
 
         self.assertEqual(label.has_audio(), False)
 
