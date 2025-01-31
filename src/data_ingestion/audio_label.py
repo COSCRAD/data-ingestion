@@ -1,9 +1,10 @@
 class AudioLabel:
-    def __init__(self, in_point, out_point, text):
+    def __init__(self, in_point, out_point, text, speaker_initials):
         self.in_point = in_point
         self.out_point = out_point
-
         self.text = text
+        self.speaker_initials = speaker_initials
+
         self.audio = None
 
     def shift(self, delta):

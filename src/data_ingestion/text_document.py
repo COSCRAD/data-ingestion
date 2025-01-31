@@ -19,7 +19,7 @@ class CoscradParagraph:
       self.text = text
 
 # The timestamp_offset allows us to shift timestamps appropriately
-   def emit_audio_labels(self,timestamp_offset):
+   def emit_audio_labels(self,first_timestamp):
       # participant_initials_delimiter_patern = r"[(a-z){2}]"
 
       # first_speakers_initials = re.findall(participant_initials_delimiter_patern)
@@ -29,7 +29,7 @@ class CoscradParagraph:
       search = re.split(time_stamp_delimiter_pattern,self.text)
       result = [] if search is None else list(filter(lambda s: not s.replace(' ','') == '',search))
 
-      resolved_timestamp_offset = timestamp_offset if timestamp_offset is not None else 0.0
+      resolved_first_timestamp = first_timestamp if first_timestamp is not None else 0.0
 
       timestamps = []
 
@@ -37,11 +37,11 @@ class CoscradParagraph:
 
       # resolve an opening time-stamp in case the passage begins with text
       if not re.match(time_stamp_delimiter_pattern,result[0]):
-         timestamps.append(resolved_timestamp_offset)
+         timestamps.append(resolved_first_timestamp)
 
       for index,text in enumerate(result):
          if re.match(time_stamp_delimiter_pattern,text):
-            timestamps.append(parse_timestamp(text) + resolved_timestamp_offset) 
+            timestamps.append(parse_timestamp(text)) 
 
       if not re.match(time_stamp_delimiter_pattern,result[-1]):
          # Do we really want to duplicate this?
@@ -52,16 +52,31 @@ class CoscradParagraph:
       for text in result:
          # TODO be careful about the effects of trimming white space
          if not re.match(time_stamp_delimiter_pattern,text) and text.replace(" ","") != "":
-            labels.append(AudioLabel(in_point=timestamps[label_index],out_point=timestamps[label_index+1],text=text)) 
+            search_for_initials = re.findall(r"\[[A-Za-z]{2}\]",text)
+
+            speaker_initials_with_brackets = None
+
+            speaker_initials = None
+
+            if search_for_initials is not None and len(search_for_initials) == 1:
+               # TODO inject this logic
+               speaker_initials_with_brackets = search_for_initials[0]
+
+               # TODO be careful about trimming white space
+               text = text.replace(speaker_initials_with_brackets,"")
+
+               either_square_bracket_pattern = r"(\[|\])"
+
+               speaker_initials = re.sub(either_square_bracket_pattern,"",speaker_initials_with_brackets)
+
+            labels.append(AudioLabel(in_point=timestamps[label_index],out_point=timestamps[label_index+1],text=text,speaker_initials=speaker_initials)) 
+            
             label_index = label_index + 1
 
 
  # TODO We need to consolidate all timestamps in case there was no closing timestamp
 
       return labels           
-
-      
-
 
 class TextDocument:
    def __init__(self, name):
@@ -74,10 +89,14 @@ class TextDocument:
 
    def emit_audio_labels(self):
       all_labels = []
+
+      current_timestamp = 0.0
+
       for p in self.paragraphs:
-         for l in p.emit_audio_labels(0.0):
-            # TODO pass in outpoint of last previous label
+         for l in p.emit_audio_labels(current_timestamp):
             all_labels.append(l)
+
+            current_timestamp = 0.0 if l.out_point is None else l.out_point
 
       return all_labels
 
