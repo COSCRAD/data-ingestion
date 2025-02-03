@@ -28,7 +28,7 @@ def unzip_pptx(filepath):
     return archive
 
 def parse_pptx_slide_number_offset(pptx_archive):
-
+    # TODO verify that this file \ archive actually exists and fail fast if not
     xml_file = pptx_archive.open('ppt/presentation.xml')
     text = xml_file.read()
     bs = BeautifulSoup(text,'xml')
@@ -63,18 +63,15 @@ class Presentation:
         coscrad_presentation = Presentation(slide_number_offset=slide_offset)
 
         for slide in pptx_presentation.slides:
-            # TODO read slide numbers from original pptx
             coscrad_slide = PresentationSlide(slide_id=slide.slide_id, slide_number=len(coscrad_presentation.slides))
 
             for shape in slide.shapes:
-                if(shape.shape_type == MSO_SHAPE_TYPE.PICTURE):
-                    print("found a picture")
-                
                 if shape.has_text_frame:
                     for paragraph in shape.text_frame.paragraphs:
                         for run in paragraph.runs:
                             coscrad_slide.add_text(run.text)
                 
+                # if(shape.shape_type == MSO_SHAPE_TYPE.PICTURE):
                 # Note that `shape.shape_type` has been known to report a shape as text instead of an image incorrectly
                 if(hasattr(shape,"image")):
                     coscrad_slide.add_image(shape.image)
