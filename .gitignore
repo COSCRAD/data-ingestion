@@ -6,3 +6,5 @@ __pycache__/
 *.pyc
 *$py.class
 
+# docx files written by tests
+src/test/test_data/text_document_test

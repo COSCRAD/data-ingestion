@@ -2,13 +2,19 @@ import unittest
 
 from docx import Document
 
-
+from pathlib import Path
 from data_ingestion.text_document import TextDocument
 
-test_data_dir = "src/test/test_data"
+test_data_dir = "src/test/test_data/text_document_test"
 
 
 class TextDocumentTest(unittest.TestCase):
+    def setUp(self):
+        super().setUp()
+
+        Path(test_data_dir).mkdir(parents=True, exist_ok=True)
+
+
     def build_test_document(paragraphs, file):
         doc_name = "my document"
 
