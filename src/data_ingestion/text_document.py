@@ -85,8 +85,8 @@ class CoscradParagraph:
 
                 labels.append(
                     AudioLabel(
-                        in_point=timestamps[label_index],
-                        out_point=timestamps[label_index + 1],
+                        in_point_ms=timestamps[label_index],
+                        out_point_ms=timestamps[label_index + 1],
                         text=text,
                         speaker_initials=speaker_initials,
                     )
@@ -117,7 +117,7 @@ class TextDocument:
             for l in p.emit_audio_labels(current_timestamp):
                 all_labels.append(l)
 
-                current_timestamp = 0.0 if l.out_point is None else l.out_point
+                current_timestamp = 0.0 if l.out_point_ms is None else l.out_point_ms
 
         return all_labels
 

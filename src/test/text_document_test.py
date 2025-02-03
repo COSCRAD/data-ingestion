@@ -5,9 +5,11 @@ from docx import Document
 
 from data_ingestion.text_document import TextDocument
 
+test_data_dir = "src/test/test_data"
+
 
 class TextDocumentTest(unittest.TestCase):
-    def build_test_document(paragraphs):
+    def build_test_document(paragraphs, file):
         doc_name = "my document"
 
         docx_doc = Document()
@@ -16,9 +18,12 @@ class TextDocumentTest(unittest.TestCase):
         for p in paragraphs:
             docx_doc.add_paragraph(p)
 
-        test_filename = "test_docx_import.docx"
+        test_filename = f"{test_data_dir}/{file}.docx"
 
-        docx_doc.save(test_filename)
+        try:
+            docx_doc.save(test_filename)
+        except Exception as e:
+            raise e
 
         return TextDocument.from_docx(file_path=test_filename, name=doc_name)
 
@@ -31,7 +36,7 @@ class TextDocumentTest(unittest.TestCase):
         for p in paragraphs:
             docx_doc.add_paragraph(p)
 
-        test_filename = "test_docx_import.docx"
+        test_filename = f"{test_data_dir}/test_that_it_builds_from_a_word_document.docx"
 
         docx_doc.save(test_filename)
 
@@ -48,7 +53,10 @@ class TextDocumentTest(unittest.TestCase):
             " this is what was said _00:00:05_ and then this _00:00:07_"
         ]
 
-        test_doc = TextDocumentTest.build_test_document(paragraphs=paragraphs)
+        test_doc = TextDocumentTest.build_test_document(
+            paragraphs=paragraphs,
+            file="test_that_it_builds_audio_labels_with_text_at_start_and_timestamp_at_end",
+        )
 
         labels = test_doc.emit_audio_labels()
 
@@ -62,7 +70,10 @@ class TextDocumentTest(unittest.TestCase):
             "_00:00:02_ this is what was said _00:00:05_ and then this _00:00:07_"
         ]
 
-        test_doc = TextDocumentTest.build_test_document(paragraphs=paragraphs)
+        test_doc = TextDocumentTest.build_test_document(
+            paragraphs=paragraphs,
+            file="test_that_it_builds_audio_labels_with_timestamp_at_start_and_end",
+        )
 
         labels = test_doc.emit_audio_labels()
 
@@ -77,7 +88,10 @@ class TextDocumentTest(unittest.TestCase):
             "But first _00:00:02_[AP] this is what was said _00:00:05_ and then this _00:00:07_ and last"
         ]
 
-        test_doc = TextDocumentTest.build_test_document(paragraphs=paragraphs)
+        test_doc = TextDocumentTest.build_test_document(
+            paragraphs=paragraphs,
+            file="test_that_it_builds_audio_labels_with_text_at_start_and_end",
+        )
 
         labels = test_doc.emit_audio_labels()
 
@@ -95,7 +109,10 @@ class TextDocumentTest(unittest.TestCase):
             "_00:00:02_[AP] this is what was said _00:00:05_ and then this _00:00:07_ and finally!"
         ]
 
-        test_doc = TextDocumentTest.build_test_document(paragraphs=paragraphs)
+        test_doc = TextDocumentTest.build_test_document(
+            paragraphs=paragraphs,
+            file="test_that_it_builds_audio_labels_when_timestamp_at_start_and_text_at_end",
+        )
 
         labels = test_doc.emit_audio_labels()
 
@@ -107,7 +124,9 @@ class TextDocumentTest(unittest.TestCase):
     def test_that_it_works_with_no_timestamps(self):
         paragraphs = ["[AP] There are no time stamps in this one"]
 
-        test_doc = TextDocumentTest.build_test_document(paragraphs=paragraphs)
+        test_doc = TextDocumentTest.build_test_document(
+            paragraphs=paragraphs, file="test_that_it_works_with_no_timestamps"
+        )
 
         labels = test_doc.emit_audio_labels()
 
@@ -118,7 +137,9 @@ class TextDocumentTest(unittest.TestCase):
             "_00:00:02_[AP] this is what was said _00:00:05_ [AP]: and then this _00:00:07_ [AP] and finally!"
         ]
 
-        test_doc = TextDocumentTest.build_test_document(paragraphs=paragraphs)
+        test_doc = TextDocumentTest.build_test_document(
+            paragraphs=paragraphs, file="test_that_it_works_with_no_timestamps"
+        )
 
         labels = test_doc.emit_audio_labels()
 
@@ -130,7 +151,9 @@ class TextDocumentTest(unittest.TestCase):
             "_00:00:02_[AP] this is what was said _00:00:05_  and then this _00:00:07_ [JB] and finally! _00:05:03"
         ]
 
-        test_doc = TextDocumentTest.build_test_document(paragraphs=paragraphs)
+        test_doc = TextDocumentTest.build_test_document(
+            paragraphs=paragraphs, file="test_that_it_works_with_no_timestamps"
+        )
 
         labels = test_doc.emit_audio_labels()
 
@@ -149,7 +172,9 @@ class TextDocumentTest(unittest.TestCase):
             "And this one starts the next line _00:05:55_ [BS] and keeps rolling with the time 00:07:22_",
         ]
 
-        test_doc = TextDocumentTest.build_test_document(paragraphs=paragraphs)
+        test_doc = TextDocumentTest.build_test_document(
+            paragraphs=paragraphs, file="test_that_it_works_with_no_timestamps"
+        )
 
         labels = test_doc.emit_audio_labels()
 
@@ -172,8 +197,8 @@ class TextDocumentTest(unittest.TestCase):
         self, label, expected_text, expected_in_point, expected_out_point
     ):
         self.assertEqual(label.text, expected_text)
-        self.assertEqual(label.in_point, expected_in_point)
-        self.assertEqual(label.out_point, expected_out_point)
+        self.assertEqual(label.in_point_ms, expected_in_point)
+        self.assertEqual(label.out_point_ms, expected_out_point)
 
     # TODO Add one case that leverages a real `docx` file
 

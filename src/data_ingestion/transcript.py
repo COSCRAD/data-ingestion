@@ -25,7 +25,9 @@ class Transcript:
 
             i, o, t = columns
 
-            transcript.append(AudioLabel(in_point=float(i), out_point=float(o), text=t))
+            transcript.append(
+                AudioLabel(in_point_ms=float(i), out_point_ms=float(o), text=t)
+            )
 
         return transcript
 
@@ -50,12 +52,12 @@ class Transcript:
                 label.shift(delta)
                 filtered_transcript.append(label)
             else:
-                delta = delta + label.length()
+                delta = delta + label.length_ms()
 
         return filtered_transcript
 
     def sort(self):
-        get_in_point = lambda label: label.in_point
+        get_in_point = lambda label: label.in_point_ms
 
         self.labels.sort(key=get_in_point)
 
@@ -63,7 +65,7 @@ class Transcript:
         # for each label
         for l in self.labels:
             # use pydub to get the audio segment from l.in_point to l.out_point
-            audio_chunk = audio_segment[l.in_point : l.out_point]
+            audio_chunk = audio_segment[l.in_point_ms : l.out_point_ms]
 
             l.assign_audio(audio_chunk)
 

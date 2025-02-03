@@ -17,13 +17,16 @@ class TestAudioLabel(unittest.TestCase):
 
         # act
         label = AudioLabel(
-            in_point=in_point, out_point=out_point, text=text, speaker_initials=initials
+            in_point_ms=in_point,
+            out_point_ms=out_point,
+            text=text,
+            speaker_initials=initials,
         )
 
         # assert
-        self.assertEqual(label.in_point, in_point)
+        self.assertEqual(label.in_point_ms, in_point)
 
-        self.assertEqual(label.out_point, out_point)
+        self.assertEqual(label.out_point_ms, out_point)
 
         self.assertEqual(label.text, text)
 
@@ -39,7 +42,7 @@ class TestAudioLabel(unittest.TestCase):
 
         text = "here is what was said"
 
-        label = AudioLabel(in_point=in_point, out_point=out_point, text=text)
+        label = AudioLabel(in_point_ms=in_point, out_point_ms=out_point, text=text)
 
         delta = 0.2
 
@@ -47,16 +50,16 @@ class TestAudioLabel(unittest.TestCase):
         label.shift(delta)
 
         # assert
-        self.assertAlmostEqual(label.in_point, 1234.3)
+        self.assertAlmostEqual(label.in_point_ms, 1234.3)
 
-        self.assertAlmostEqual(label.out_point, 2234.6)
+        self.assertAlmostEqual(label.out_point_ms, 2234.6)
 
     def test_length(self):
         label = AudioLabel(1.23, 99.35, "text")
 
-        self.assertAlmostEqual(label.length(), 98.12)
+        self.assertAlmostEqual(label.length_ms(), 98.12)
 
-        self.assertAlmostEqual(label.length(), 98.12)
+        self.assertAlmostEqual(label.length_ms(), 98.12)
 
     def test_assign_audio(self):
         in_point = 1.345
@@ -64,8 +67,8 @@ class TestAudioLabel(unittest.TestCase):
         text = "here is the text"
 
         label = AudioLabel(
-            in_point=in_point,
-            out_point=out_point,
+            in_point_ms=in_point,
+            out_point_ms=out_point,
             text=text,
         )
         chunk_length = 1200
