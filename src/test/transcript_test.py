@@ -31,9 +31,9 @@ class TestTranscript(unittest.TestCase):
 
         first_label = audacity_transcript.labels[0]
 
-        self.assertAlmostEqual(first_label.in_point, in_points[0])
+        self.assertAlmostEqual(first_label.in_point_ms, in_points[0])
 
-        self.assertAlmostEqual(first_label.out_point, out_points[0])
+        self.assertAlmostEqual(first_label.out_point_ms, out_points[0])
 
         self.assertEqual(first_label.text, text_for_labels[0])
 
@@ -81,15 +81,15 @@ class TestTranscript(unittest.TestCase):
         #  1.2-2.0 # no shift
         first_label = filtered_transcript.labels[0]
 
-        self.assertAlmostEqual(first_label.in_point, 1.2)
-        self.assertAlmostEqual(first_label.out_point, 2.0)
+        self.assertAlmostEqual(first_label.in_point_ms, 1.2)
+        self.assertAlmostEqual(first_label.out_point_ms, 2.0)
         self.assertEqual(first_label.text, text_for_labels[0])
 
         # 3.1-3.7 # shift .3 left
         second_label = filtered_transcript.labels[1]
 
-        self.assertAlmostEqual(second_label.in_point, 3.1)
-        self.assertAlmostEqual(second_label.out_point, 3.7)
+        self.assertAlmostEqual(second_label.in_point_ms, 3.1)
+        self.assertAlmostEqual(second_label.out_point_ms, 3.7)
         # label[1] should be filtered out
         self.assertEqual(second_label.text, text_for_labels[2])
 
@@ -124,9 +124,9 @@ class TestTranscript(unittest.TestCase):
 
         self.assertEqual(len(test_transcript.labels), len(shuffled))
 
-        self.assertAlmostEqual(test_transcript.labels[0].in_point, in_points[0])
+        self.assertAlmostEqual(test_transcript.labels[0].in_point_ms, in_points[0])
 
-        self.assertAlmostEqual(test_transcript.labels[4].in_point, in_points[4])
+        self.assertAlmostEqual(test_transcript.labels[4].in_point_ms, in_points[4])
 
     def test_assigning_audio(self):
         transcript = Transcript("test transcript")
@@ -146,7 +146,7 @@ class TestTranscript(unittest.TestCase):
 
         for in_point, out_point, text in end_points_and_labels:
             transcript.append(
-                AudioLabel(in_point=in_point, out_point=out_point, text=text)
+                AudioLabel(in_point_ms=in_point, out_point_ms=out_point, text=text)
             )
 
         transcript.apply_audio(full_audio)
@@ -179,7 +179,7 @@ class TestTranscript(unittest.TestCase):
 
         for in_point, out_point, text in end_points_and_labels:
             transcript.append(
-                AudioLabel(in_point=in_point, out_point=out_point, text=text)
+                AudioLabel(in_point_ms=in_point, out_point_ms=out_point, text=text)
             )
 
         transcript.apply_audio(full_audio)
