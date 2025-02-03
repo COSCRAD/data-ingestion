@@ -175,5 +175,7 @@ class TextDocumentTest(unittest.TestCase):
         self.assertEqual(label.in_point, expected_in_point)
         self.assertEqual(label.out_point, expected_out_point)
 
+    # TODO Add one case that leverages a real `docx` file
+
     def assert_label_has_speaker_initials(self, label, initials):
         self.assertEqual(label.speaker_initials, initials)
