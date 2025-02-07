@@ -11,6 +11,9 @@ class Transcript:
     def append(self, label):
         self.labels.append(label)
 
+    def __str__(self):
+        return '\n'.join([l.text for l in self.labels])
+
     def fromTsvRows(rows, name):
         transcript = Transcript(name)
 
@@ -31,8 +34,36 @@ class Transcript:
 
         return transcript
 
-    def fromDocx(doc):
+    def from_docx(doc):
         raise Exception("not implmented")
+    
+    def from_whisper_timestamped_transcript(raw_transcript,threshold_confidence_inclusive=0.51):
+        t = Transcript(name="TODO add name")
+
+            
+        for s in raw_transcript['segments']:
+            words = s.get('words',None)
+
+            if words is None:
+                # Should we raise an exception here?
+                return
+            
+            for w in words:
+                in_point_s = w.get('start',None)
+
+                out_point_s = w.get('end',None)
+
+                text = w.get('text',None)
+
+                has_label_data = in_point_s is not None and out_point_s is not None and text is not None
+
+                if w['confidence'] >= threshold_confidence_inclusive and has_label_data:
+                    # TODO Should we null check these props?
+                    l = AudioLabel(in_point_ms=in_point_s*1000,out_point_ms=out_point_s*1000,text=text)
+
+                    t.append(l)
+
+            return t
 
     """
     Return a shallow clone with only labels that satisfy the given predicate function
