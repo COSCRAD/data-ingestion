@@ -8,3 +8,6 @@ __pycache__/
 
 # docx files written by tests
 src/test/test_data/text_document_test
+
+# output test data
+src/test/test_data/output
