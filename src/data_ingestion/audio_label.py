@@ -22,3 +22,6 @@ class AudioLabel:
 
     def assign_audio(self, chunk):
         self.audio = chunk
+
+    def __str__(self):
+        return f'[{self.in_point_ms/1000}s] [{self.speaker_initials}] {self.text} [{self.out_point_ms/1000}s]'

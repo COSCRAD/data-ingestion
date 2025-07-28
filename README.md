@@ -19,7 +19,7 @@ Install PIP dependencies:
 > > > pip install -r requirements.txt
 
 ## Development
-
+`
 Activate the virtual environment:
 
 > > > source .venv/bin/activate

@@ -3,9 +3,9 @@ import re
 
 from data_ingestion.audio_label import AudioLabel
 
-
+# TODO the delimeter here has to be correlated with the delimeter in the top level match
 def parse_timestamp(text_for_timestamp):
-    numeric_parts = text_for_timestamp.replace("_", "").replace("[", "").split(":")
+    numeric_parts = text_for_timestamp.replace("_", "").replace("[", "").replace("]","").split(":")
 
     if len(numeric_parts) == 0:
         return 0.0
@@ -15,18 +15,24 @@ def parse_timestamp(text_for_timestamp):
     return (float(hours) * 3600 + float(minutes) * 60 + float(seconds)) * 1000  # ms
 
 
+# This feels awkward. `AudioLabels` should probably have a `TextDocument` or a `CoscradParagraph`
+# At very least, this should be a specialized form of TextDocument, e.g. `TranscriptDocument`
 class CoscradParagraph:
     def __init__(self, text):
         self.text = text
 
     # The timestamp_offset allows us to shift timestamps appropriately
-    def emit_audio_labels(self, first_timestamp):
+    def emit_audio_labels(self, first_timestamp=None):
+        if self.text is None or len(self.text) == 0:
+            return []
+
         # participant_initials_delimiter_patern = r"[(a-z){2}]"
 
         # first_speakers_initials = re.findall(participant_initials_delimiter_patern)
 
-        # TODO Ingect the strategy for processing labels
-        time_stamp_delimiter_pattern = r"(_\d\d:\d\d:\d\d_)"
+        # TODO Ingect the strategy for processing labels or pre-process to standardize
+        time_stamp_delimiter_pattern = r"(\[\d\d:\d\d:\d\d\])"
+
         search = re.split(time_stamp_delimiter_pattern, self.text)
         result = (
             []
@@ -41,6 +47,11 @@ class CoscradParagraph:
         timestamps = []
 
         labels = []
+
+        if(len(result) == 0):
+            print("No time stamps found")
+            print(f'in text: {self.text}')
+            return []
 
         # resolve an opening time-stamp in case the passage begins with text
         if not re.match(time_stamp_delimiter_pattern, result[0]):
@@ -120,6 +131,9 @@ class TextDocument:
                 current_timestamp = 0.0 if l.out_point_ms is None else l.out_point_ms
 
         return all_labels
+    
+    def __str__(self):
+        return "\n".join([p.text for p in self.paragraphs])
 
     def from_docx(file_path, name):
         doc = TextDocument(name=name)
