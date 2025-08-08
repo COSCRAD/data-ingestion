@@ -10,13 +10,13 @@ class WhisperTranscriber:
 
         self.threshold_confidence = 0.51
 
-    def transcribe(self,file):
+    def transcribe(self,file,name):
         audio = wt.load_audio(file)
 
         # TODO Ensure the Whisper \ WhisperTimestamped version is part of this data in case their schema changes later
         raw_transcript = wt.transcribe(self.transcriber,audio,'en')
         # We return the raw Whisper (Timestamped) transcript in case we want to modify the post-processing later to avoid information loss
-        return [Transcript.from_whisper_timestamped_transcript(raw_transcript),raw_transcript]
+        return [Transcript.from_whisper_timestamped_transcript(raw_transcript,name=name),name,raw_transcript]
 
 
         

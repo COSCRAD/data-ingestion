@@ -2,13 +2,15 @@ import unittest
 from data_ingestion.whisper_trascriber import WhisperTranscriber
 from data_ingestion.label_phrases_with_spoken_slugs import label_phrases_with_spoken_slugs
 
+test_transcript_name = "An interview about plants"
+
 class WhisperTranscriberTest(unittest.TestCase):
     def test_that_it_transcribes_a_sample_clip(self):
         test_file = "src/test/test_data/media-files/test-for-asr.wav"
 
         t = WhisperTranscriber()
 
-        result = t.transcribe(test_file)
+        result = t.transcribe(test_file,name=test_transcript_name)
 
         # TODO improve upon this sanity check
         self.assertIsNotNone(result)
@@ -21,12 +23,14 @@ class WhisperTranscriberTest(unittest.TestCase):
 
         self.assertEquals(True,includes_text)
 
+        self.assertEquals(transcript.name,test_transcript_name)
+
     def test_slug_labelled_clip_transcription(self):
         test_file = "src/test/test_data/media-files/test-for-asr_slug-labelled-list.wav"
 
         t = WhisperTranscriber()
 
-        transcript, _raw_transcript = t.transcribe(test_file)
+        transcript, _raw_transcript = t.transcribe(test_file,test_transcript_name)
 
         transcript_for_slugs = label_phrases_with_spoken_slugs([transcript])
 

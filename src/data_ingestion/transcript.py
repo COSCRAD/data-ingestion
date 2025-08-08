@@ -37,10 +37,9 @@ class Transcript:
     def from_docx(doc):
         raise Exception("not implmented")
     
-    def from_whisper_timestamped_transcript(raw_transcript,threshold_confidence_inclusive=0.51):
-        t = Transcript(name="TODO add name")
+    def from_whisper_timestamped_transcript(raw_transcript,name,threshold_confidence_inclusive=0.51):
+        t = Transcript(name=name)
 
-            
         for w in raw_transcript.get('segments',[]):
             in_point_s = w.get('start',None)
 
