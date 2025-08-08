@@ -41,34 +41,37 @@ class Transcript:
         t = Transcript(name="TODO add name")
 
             
-        for s in raw_transcript['segments']:
-            words = s.get('words',None)
+        for w in raw_transcript.get('segments',[]):
+            in_point_s = w.get('start',None)
 
-            if words is None:
-                # Should we raise an exception here?
-                return
-            
-            for w in words:
-                in_point_s = w.get('start',None)
+            out_point_s = w.get('end',None)
 
-                out_point_s = w.get('end',None)
+            text = w.get('text',None)
 
-                text = w.get('text',None)
+            has_label_data = in_point_s is not None and out_point_s is not None and text is not None
 
-                has_label_data = in_point_s is not None and out_point_s is not None and text is not None
+            if w.get('confidence',0.0) >= threshold_confidence_inclusive and has_label_data:
+                # TODO Should we null check these props?
+                l = AudioLabel(in_point_ms=in_point_s*1000,out_point_ms=out_point_s*1000,text=text)
 
-                if w['confidence'] >= threshold_confidence_inclusive and has_label_data:
-                    # TODO Should we null check these props?
-                    l = AudioLabel(in_point_ms=in_point_s*1000,out_point_ms=out_point_s*1000,text=text)
+                t.append(l)
 
-                    t.append(l)
+        return t
 
-            return t
+    """
+    Return a shallow clone with the given transformation applied
+    """
+    def map_label_text(self,transform_text):
+        transformed_transcript = Transcript(self.name)
+
+        for l in self.labels:
+            transformed_transcript.append(AudioLabel(in_point_ms=l.in_point_ms,out_point_ms=l.out_point_ms,speaker_initials=l.speaker_initials,text=transform_text(l.text)))
+
+        return transformed_transcript
 
     """
     Return a shallow clone with only labels that satisfy the given predicate function
     """
-
     def filter(self, predicate):
         filtered_transcript = Transcript(self.name)
 
@@ -86,6 +89,48 @@ class Transcript:
                 delta = delta + label.length_ms()
 
         return filtered_transcript
+    
+    def shift_labels_to_negative(self,padding_ms=50):
+        """[summary]
+        Some recordings involve reading an identifier for a phrase (e.g., "12332") and then
+        reading the phrase (e.g., "dog"). ASR results in labelling both the identifiers and
+        the phrases, which come out as gibberish in the event that the phrase is in an underresourced
+        language. We apply post-processing to remove the phrases, resulting in a transcript that 
+        transcribed all of the labels,e.g., 
+        ```json
+        {
+            in: 12010,
+            out: 13100,
+            text: "12332"
+        }
+        ```
+
+        This utility method shifts the label for the identifier ("12332") to where the phrase was spoken.
+        Note that the text is still the identifier. This allows us to export clips that are named
+        after said ID (e.g., "12332.wav") upstream to be linked with the term in the database in an
+        automated way.
+
+        This method is named because the empty space in the label track occupied by the phrases can be
+        visualized as a negative of the original label track.
+        """
+        transformed_transcript = Transcript(self.name)
+    
+        for index,l in enumerate(self.labels):
+            new_in = l.out_point_ms
+
+            new_out = new_in if index == len(self.labels)-1 else self.labels[index+1].in_point
+
+            new_label = AudioLabel(in_point_ms=new_in+padding_ms,out_point_ms=new_out+padding_ms,text=l.text,speaker_initials=l.speaker_initials)
+            
+            transformed_transcript.append(new_label)
+
+        return transformed_transcript
+    
+    # Should this return a list of labels instead of a string?
+    def to_audacity_labels(self):
+        # TODO Consider filtering out incomplete labels
+        # Note that Audacity works in seconds not milliseconds
+        return '\n'.join([f"{l.in_point_ms/1000}\t{l.out_point_ms/1000}\t{l.text}\t" for l in self.labels])
 
     def sort(self):
         get_in_point = lambda label: label.in_point_ms
