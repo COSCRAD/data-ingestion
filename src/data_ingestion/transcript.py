@@ -26,8 +26,14 @@ class Transcript:
     def __str__(self):
         return '\n'.join([l.text for l in self.labels])
     
+    def __len__(self):
+        return 0 if self.is_empty() else len(self.labels)
+    
     def is_empty(self):
         return len(self.labels) == 0
+    
+    def last(self):
+        return None if self.is_empty() else self.labels[-1]
 
     def fromTsvRows(rows, name):
         transcript = Transcript(name)

@@ -226,7 +226,15 @@ class TestTranscript(unittest.TestCase):
 
         for p in paragraphs:
             test_docx_doc.add_paragraph(p)
+
+        end_of_recording_p = test_docx_doc.add_paragraph()
+
+        END_OF_RECORDING = "END OF RECORDING"
         
+        end_of_recording_p.add_run(END_OF_RECORDING)
+
+        end_of_recording_p.style = "List Bullet"
+
         transcript = Transcript.from_docx(test_docx_doc,doc_name)
 
         self.assertEqual(transcript.name,doc_name)
@@ -242,6 +250,12 @@ class TestTranscript(unittest.TestCase):
             self.assertEqual(len(matches),1)
 
         self.assertEqual(transcript.title,title_text)
+
+        last_label = transcript.last()
+
+        self.assertTrue("didn't have cats" in last_label.text)
+
+        self.assertEqual(len(transcript),len(paragraphs))
 
 if __name__ == "__main__":
     unittest.main()
