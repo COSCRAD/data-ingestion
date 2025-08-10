@@ -1,10 +1,22 @@
 from data_ingestion.audio_label import AudioLabel
 from pydub import AudioSegment
+import re
 
+def parse_timestamp(text_for_timestamp):
+    numeric_parts = text_for_timestamp.replace("_", "").replace("[", "").replace("]","").split(":")
+
+    if len(numeric_parts) == 0:
+        return 0.0
+
+    hours, minutes, seconds = numeric_parts
+
+    return (float(hours) * 3600 + float(minutes) * 60 + float(seconds)) * 1000  # ms
 
 class Transcript:
     def __init__(self, name):
         self.name = name
+
+        self.title = None
 
         self.labels = []
 
@@ -13,6 +25,9 @@ class Transcript:
 
     def __str__(self):
         return '\n'.join([l.text for l in self.labels])
+    
+    def is_empty(self):
+        return len(self.labels) == 0
 
     def fromTsvRows(rows, name):
         transcript = Transcript(name)
@@ -34,8 +49,40 @@ class Transcript:
 
         return transcript
 
-    def from_docx(doc):
-        raise Exception("not implmented")
+    def from_docx(doc,name,timestamp_pattern= r"(\[\d\d:\d\d:\d\d\])"):
+        transcript = Transcript(name)
+
+        # TODO inject a parser to support different formats?
+        # first we parse the paragraphs in between time-stamps
+        for p in doc.paragraphs:
+            # For now, we only accept a match at the beginning of the line
+            search = re.match(timestamp_pattern, p.text)
+
+            if search is not None:
+                split = re.split(timestamp_pattern,p.text,maxsplit=1)
+
+                if split is None:
+                    continue
+
+                trimmed_split = [t for t in split if t.replace(' ','') != '']
+
+                timestamp_text = trimmed_split[0]
+
+                text = trimmed_split[1]
+
+                timestamp = parse_timestamp(timestamp_text)
+
+                new_label = AudioLabel(in_point_ms=timestamp,out_point_ms=None,text=text)
+
+                transcript.append(new_label)
+            else:
+                if transcript.is_empty():
+                    if(transcript.title is None):
+                        # TODO Do we want the full paragraph \ runs
+                        # TODO Support multi-line titles
+                        transcript.title = p.text
+
+        return transcript
     
     def from_whisper_timestamped_transcript(raw_transcript,name,threshold_confidence_inclusive=0.51):
         t = Transcript(name=name)

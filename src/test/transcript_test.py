@@ -1,5 +1,7 @@
 import unittest
 
+from docx import Document
+
 from data_ingestion.transcript import Transcript
 from data_ingestion.audio_label import AudioLabel
 from pydub import AudioSegment
@@ -10,7 +12,7 @@ class TestTranscript(unittest.TestCase):
         invalid_tsv = "1.2\t2.4\tgoodone\n1.2\tmissing out point"
 
         def try_from_tsv():
-            Transcript.from_tsv_rows()
+            Transcript.from_tsv_rows(invalid_tsv)
 
         self.assertRaises(Exception, try_from_tsv)
 
@@ -198,6 +200,48 @@ class TestTranscript(unittest.TestCase):
             True,
         )
 
+
+    def test_from_docx_for_standardized_transcript_format(self):
+        doc_name = "my document"
+
+        test_docx_doc = Document()
+
+        title_text = "This is the title!"
+
+        title_paragraph = test_docx_doc.add_paragraph()
+
+        title_run = title_paragraph.add_run(title_text)
+
+        # TODO consider using a fixture docx file instead of programmatically setting this up
+        title_run.bold = True
+
+        paragraphs = [
+            "[00:00:00][TS] Was it up there?",
+            "[00:00:00][MS] No dogs were allowed in the house.",
+            "[00:00:03][TS] That's the way it was.",
+            "[00:00:04][MS] Dogs were forbidden",
+            "[00:00:04][TS] Yup",
+            "[00:00:06][MS] We didn't have dogs. We didn't have cats."
+        ]
+
+        for p in paragraphs:
+            test_docx_doc.add_paragraph(p)
+        
+        transcript = Transcript.from_docx(test_docx_doc,doc_name)
+
+        self.assertEqual(transcript.name,doc_name)
+
+        expected_in_points_and_labels = [
+            [0,"Was it up there?"],
+            # TODO add the rest here
+        ]
+
+        for ip, l in expected_in_points_and_labels:
+            matches = [label for label in transcript.labels if label.in_point_ms == ip and l in label.text]
+
+            self.assertEqual(len(matches),1)
+
+        self.assertEqual(transcript.title,title_text)
 
 if __name__ == "__main__":
     unittest.main()
