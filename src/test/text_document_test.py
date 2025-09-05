@@ -220,7 +220,9 @@ class TextDocumentTest(unittest.TestCase):
                     t = f'T#{ti} {text_for_cells[ci][ri-1]}'
 
                     if ri == 0:
-                        c.add_paragraph(headings[ci])
+                        heading_to_use = headings[ci] if ti != n_tables-1 else f'{headings[ci]}, inconsistent'
+
+                        c.add_paragraph(heading_to_use)
                     else:
                         c.add_paragraph(t)
 
@@ -228,7 +230,7 @@ class TextDocumentTest(unittest.TestCase):
 
         docx_doc.save(test_filepath)
 
-        test_coscrad_doc = TextDocument.from_docx(test_filepath,'test-doc-with-tables')
+        test_coscrad_doc = TextDocument.from_docx(test_filepath,'test-doc-with-tables',coalesce_tables=True)
 
         result = test_coscrad_doc.emit_combined_tables()
 

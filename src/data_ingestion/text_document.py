@@ -148,7 +148,8 @@ class TextDocument:
 
         return all_labels
 
-    def from_docx(file_path, name):
+# Ideally, we would use inversion of control, but coalescing tables in a docx is our primary use case so there's not much to gain
+    def from_docx(file_path, name, coalesce_tables=False):
         doc = TextDocument(name=name)
 
         docx_doc = Document(file_path)
@@ -157,10 +158,14 @@ class TextDocument:
             # TODO preserve all information here
             doc.add_paragraph(p.text)
 
+        # TODO validate that tables have the same # of columns if the `coalesce_tables` flag is passed
+        first_table_headings = [c.text.replace('\n','') for c in docx_doc.tables[0].rows[0].cells]
+
         for t in docx_doc.tables:
             as_dict = {}
 
-            headings = [c.text.replace('\n','') for c in t.rows[0].cells]
+            # If the user doesn't wish to coalesce tables, each table could have a unique set of headings
+            headings = first_table_headings if coalesce_tables else [c.text.replace('\n','') for c in t.rows[0].cells]
 
             for ci,c in enumerate(t.columns):
                 as_dict.setdefault(headings[ci],[cell.text for cell in c.cells])
