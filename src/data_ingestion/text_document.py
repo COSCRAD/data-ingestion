@@ -114,6 +114,12 @@ class TextDocument:
     def add_table(self,new_table):
         self.tables.append(new_table)
 
+    def get_table_statistics(self):
+        return {
+            "count": len(self.tables),
+            "headings": [[k for k in t.keys()] for t in self.tables]
+        }
+
     def emit_combined_tables(self):
         if len(self.tables) == 0:
             return None
