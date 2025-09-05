@@ -1,5 +1,6 @@
 from docx import Document
 import re
+import copy
 
 from data_ingestion.audio_label import AudioLabel
 
@@ -105,8 +106,34 @@ class TextDocument:
 
         self.paragraphs = []
 
+        self.tables = []
+
     def add_paragraph(self, text):
         self.paragraphs.append(CoscradParagraph(text=text))
+
+    def add_table(self,new_table):
+        self.tables.append(new_table)
+
+    def emit_combined_tables(self):
+        if len(self.tables) == 0:
+            return None
+
+        # the first table is the source of truth for all headings
+        headings = self.tables[0].keys()
+
+        combined = {}
+
+        for h in headings:
+            combined[h] = []
+
+        for t in self.tables:
+            for h in headings:
+                if h in t:
+                    rows_for_this_column = t[h]
+                    combined[h].extend(rows_for_this_column[1:])
+
+        return combined
+
 
     def emit_audio_labels(self):
         all_labels = []
@@ -127,6 +154,19 @@ class TextDocument:
         docx_doc = Document(file_path)
 
         for p in docx_doc.paragraphs:
+            # TODO preserve all information here
             doc.add_paragraph(p.text)
 
+        for t in docx_doc.tables:
+            as_dict = {}
+
+            headings = [c.text.replace('\n','') for c in t.rows[0].cells]
+
+            for ci,c in enumerate(t.columns):
+                as_dict.setdefault(headings[ci],[cell.text for cell in c.cells])
+
+            doc.add_table(as_dict)
+
         return doc
+
+
