@@ -1,5 +1,6 @@
 from docx import Document
 import re
+import copy
 
 from data_ingestion.audio_label import AudioLabel
 
@@ -105,8 +106,40 @@ class TextDocument:
 
         self.paragraphs = []
 
+        self.tables = []
+
     def add_paragraph(self, text):
         self.paragraphs.append(CoscradParagraph(text=text))
+
+    def add_table(self,new_table):
+        self.tables.append(new_table)
+
+    def get_table_statistics(self):
+        return {
+            "count": len(self.tables),
+            "headings": [[k for k in t.keys()] for t in self.tables]
+        }
+
+    def emit_combined_tables(self):
+        if len(self.tables) == 0:
+            return None
+
+        # the first table is the source of truth for all headings
+        headings = self.tables[0].keys()
+
+        combined = {}
+
+        for h in headings:
+            combined[h] = []
+
+        for t in self.tables:
+            for h in headings:
+                if h in t:
+                    rows_for_this_column = t[h]
+                    combined[h].extend(rows_for_this_column[1:])
+
+        return combined
+
 
     def emit_audio_labels(self):
         all_labels = []
@@ -121,12 +154,30 @@ class TextDocument:
 
         return all_labels
 
-    def from_docx(file_path, name):
+# Ideally, we would use inversion of control, but coalescing tables in a docx is our primary use case so there's not much to gain
+    def from_docx(file_path, name, coalesce_tables=False):
         doc = TextDocument(name=name)
 
         docx_doc = Document(file_path)
 
         for p in docx_doc.paragraphs:
+            # TODO preserve all information here
             doc.add_paragraph(p.text)
 
+        # TODO validate that tables have the same # of columns if the `coalesce_tables` flag is passed
+        first_table_headings = [c.text.replace('\n','') for c in docx_doc.tables[0].rows[0].cells]
+
+        for t in docx_doc.tables:
+            as_dict = {}
+
+            # If the user doesn't wish to coalesce tables, each table could have a unique set of headings
+            headings = first_table_headings if coalesce_tables else [c.text.replace('\n','') for c in t.rows[0].cells]
+
+            for ci,c in enumerate(t.columns):
+                as_dict.setdefault(headings[ci],[cell.text for cell in c.cells])
+
+            doc.add_table(as_dict)
+
         return doc
+
+

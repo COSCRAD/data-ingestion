@@ -199,6 +199,63 @@ class TextDocumentTest(unittest.TestCase):
 
         self.assert_label_has_speaker_initials(labels[4], "BS")
 
+    def test_that_it_combines_tables(self):
+        docx_doc = Document()
+
+        headings = ['LangX','notes','definition']
+
+        n_tables = 10
+
+        n_rows = 100
+
+        text_for_cells = [[f'{heading}-{i}' for i in range(n_rows)] for heading in headings]
+        
+        for _ti in range(n_tables):
+            # we add an extra row for headings
+            docx_doc.add_table(n_rows+1,len(headings))
+
+        for ti,t in enumerate(docx_doc.tables):
+            for ri,r in enumerate(t.rows):
+                for ci,c in enumerate(r.cells):
+                    t = f'T#{ti} {text_for_cells[ci][ri-1]}'
+
+                    if ri == 0:
+                        heading_to_use = headings[ci] if ti != n_tables-1 else f'{headings[ci]}, inconsistent'
+
+                        c.add_paragraph(heading_to_use)
+                    else:
+                        c.add_paragraph(t)
+
+        test_filepath = f'{test_data_dir}/my-test-docx-with-tables.docx'
+
+        docx_doc.save(test_filepath)
+
+        test_coscrad_doc = TextDocument.from_docx(test_filepath,'test-doc-with-tables',coalesce_tables=True)
+
+        result = test_coscrad_doc.emit_combined_tables()
+
+        for h in headings:
+            self.assertEqual(len(result[h]),n_tables*n_rows)
+
+        # this is a sanity check
+        index_of_table_to_check = 5
+        index_of_row_to_check = 20
+
+        index_of_cell_to_check = index_of_table_to_check*n_rows+index_of_row_to_check
+
+        first_cell = result[headings[0]][index_of_cell_to_check]
+
+        self.assertTrue(headings[0] in first_cell)
+
+        # We used these indices to generate the cell contents
+        self.assertTrue(str(index_of_table_to_check) in first_cell)
+
+        self.assertTrue(str(index_of_row_to_check) in first_cell)
+
+        self.assertTrue(headings[1] in result[headings[1]][index_of_cell_to_check])
+
+        self.assertTrue(headings[2] in result[headings[2]][index_of_cell_to_check])
+        
     def assert_correct_label(
         self, label, expected_text, expected_in_point, expected_out_point
     ):
