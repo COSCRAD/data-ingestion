@@ -38,6 +38,18 @@ class CoscradClient:
         # TODO run fresh build
         self.cliPath = f'dist/apps/coscrad-cli'
 
+    def fetchBulkJobById(self,id):
+        cliCommand = f'manage-bulk-jobs {self.ddArg("info-for",id)}'
+
+        result = self.command(cliCommand)
+
+        print(f'result of bulk job fetch')
+        print(result.stdout)
+
+        record = json.loads(result.stdout)
+
+        return record
+
     def executeBulkJob(self,bulkJobCreationDto):
         # TODO support passing serialized JSON instead of using JSON files as a means of interprocess communication!
         temp_dir = 'tmp'
@@ -63,9 +75,19 @@ class CoscradClient:
 
         result = self.command(cli_command)
 
-        print(result)
+        split = result.stdout.split("bulkJob/")
 
-        # TODO parse error \ success state 
+        after_identifier = split[1] if len(split) > 1 else None
+
+        if after_identifier is None:
+            return None
+        
+        if not "\n" in after_identifier:
+            return after_identifier
+        
+
+        return after_identifier.split("\n")[0]
+
 
     def checkCliStatus(self):
         print(self.command("",[]))
@@ -77,7 +99,8 @@ class CoscradClient:
 
         args_for_subprocess.extend(clargs)
         
-        result = subprocess.run(args_for_subprocess,shell=True)
+        # This will capture the output intsead of logging it
+        result = subprocess.run(args_for_subprocess,capture_output=True,text=True,shell=True)
 
         return result
 
