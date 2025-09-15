@@ -43,9 +43,6 @@ class CoscradClient:
 
         result = self.command(cliCommand)
 
-        print(f'result of bulk job fetch')
-        print(result.stdout)
-
         record = json.loads(result.stdout)
 
         return record
