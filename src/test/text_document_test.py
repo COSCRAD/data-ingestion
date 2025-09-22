@@ -245,6 +245,11 @@ class TextDocumentTest(unittest.TestCase):
 
         first_cell = result[headings[0]][index_of_cell_to_check]
 
+        self.assertTrue("_source-row" in result)
+
+        # The `_source-row` indexes have been shifted by 1 as they are "user-facing" (can also think of it as the headings being omittied while table numbering starts at 1)
+        self.assertEqual(result["_source-row"][index_of_cell_to_check],f'{index_of_table_to_check+1}-{index_of_row_to_check+1}')
+
         self.assertTrue(headings[0] in first_cell)
 
         # We used these indices to generate the cell contents
