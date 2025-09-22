@@ -167,7 +167,7 @@ class TextDocument:
         # TODO validate that tables have the same # of columns if the `coalesce_tables` flag is passed
         first_table_headings = [c.text.replace('\n','') for c in docx_doc.tables[0].rows[0].cells]
 
-        for t in docx_doc.tables:
+        for ti, t in enumerate(docx_doc.tables):
             as_dict = {}
 
             # If the user doesn't wish to coalesce tables, each table could have a unique set of headings
@@ -175,6 +175,18 @@ class TextDocument:
 
             for ci,c in enumerate(t.columns):
                 as_dict.setdefault(headings[ci],[cell.text for cell in c.cells])
+
+            SOURCE_ROW_HEADING = "_source-row"
+
+            for ri, _row in enumerate(t.rows):
+                updated_list = as_dict.get(SOURCE_ROW_HEADING,[])
+
+                # Due to headings, row indices are already human readable
+                # But table indices need to be shifted for user-facing data
+                updated_list.append(f'{ti+1}-{ri}')
+
+                as_dict.setdefault(SOURCE_ROW_HEADING,updated_list)
+                
 
             doc.add_table(as_dict)
 

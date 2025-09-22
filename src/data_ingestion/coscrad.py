@@ -77,7 +77,7 @@ class CoscradClient:
         after_identifier = split[1] if len(split) > 1 else None
 
         if after_identifier is None:
-            return None
+            raise Exception(f'Bulk job has failed.\n {result.stdout}')
         
         if not "\n" in after_identifier:
             return after_identifier
