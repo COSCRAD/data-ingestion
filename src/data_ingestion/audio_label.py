@@ -22,3 +22,12 @@ class AudioLabel:
 
     def assign_audio(self, chunk):
         self.audio = chunk
+
+    def to_coscrad_line_item_dto(self,langaugeCode):
+        return {
+                "inPointMilliseconds": self.in_point_ms,
+                "outPointMilliseconds": self.out_point_ms,
+                "speakerInitials": self.speaker_initials,
+                "text": self.text,
+                "languageCode": langaugeCode
+            } 

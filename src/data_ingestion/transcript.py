@@ -176,7 +176,33 @@ class Transcript:
             
             transformed_transcript.append(new_label)
 
-        return transformed_transcript
+        return transformed_transcript\
+        
+    # TODO We should have an e2e test for this
+    def to_coscrad(self,aggregateCompositeIdentifier,languageCode):
+        create_transcript = {
+            "type": "CREATE_TRANSCRIPT",
+            "payload": {
+                "aggregateCompositeIdentifier": aggregateCompositeIdentifier
+            }
+        }
+
+        line_items = [
+            l.to_coscrad_line_item_dto(languageCode) for l in self.labels
+        ]
+
+        import_line_items_to_transcript = {
+            "type": "IMPORT_LINE_ITEMS_TO_TRANSCRIPT",
+            "payload": {
+                "aggregateCompositeIdentifier": aggregateCompositeIdentifier,
+                "lineItems": line_items
+            }
+        }
+
+        return [
+            create_transcript,
+            import_line_items_to_transcript
+        ]
     
     # Should this return a list of labels instead of a string?
     def to_audacity_labels(self):
