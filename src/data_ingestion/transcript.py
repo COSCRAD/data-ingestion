@@ -1,3 +1,4 @@
+from docx import Document
 from data_ingestion.audio_label import AudioLabel
 from pydub import AudioSegment
 import re
@@ -55,7 +56,9 @@ class Transcript:
 
         return transcript
 
-    def from_docx(doc,name,timestamp_pattern= r"(\[\d\d:\d\d:\d\d\])"):
+    def from_docx(filepath,name,timestamp_pattern= r"(\[\d\d:\d\d:\d\d\])"):
+        doc = Document(filepath)
+        
         transcript = Transcript(name)
 
         # TODO inject a parser to support different formats?
