@@ -120,7 +120,9 @@ class Transcript:
         transformed_transcript = Transcript(self.name)
 
         for l in self.labels:
-            transformed_transcript.append(AudioLabel(in_point_ms=l.in_point_ms,out_point_ms=l.out_point_ms,speaker_initials=l.speaker_initials,text=transform_text(l.text)))
+            new_label = AudioLabel(in_point_ms=l.in_point_ms,out_point_ms=l.out_point_ms,speaker_initials=l.speaker_initials,text=transform_text(l.text))
+
+            transformed_transcript.append(new_label)
 
         return transformed_transcript
 
@@ -173,7 +175,7 @@ class Transcript:
         for index,l in enumerate(self.labels):
             new_in = l.out_point_ms
 
-            new_out = new_in if index == len(self.labels)-1 else self.labels[index+1].in_point
+            new_out = new_in if index == len(self.labels)-1 else self.labels[index+1].in_point_ms
 
             new_label = AudioLabel(in_point_ms=new_in+padding_ms,out_point_ms=new_out+padding_ms,text=l.text,speaker_initials=l.speaker_initials)
             
@@ -234,3 +236,9 @@ class Transcript:
                 full_audio = full_audio + l.audio
 
         return full_audio
+    
+    def __json__(self):
+        return {
+            'name': self.name,
+            'items': [l.to_coscrad_line_item_dto('en') for l in self.labels]
+        }
